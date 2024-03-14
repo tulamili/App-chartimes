@@ -55,7 +55,7 @@ while ( <> ) {
 
   for my $c ( keys %f1 ) { 
     $fm1 { $c } = dualvar $f1 { $c } + 0 , $_ if ($fm1{$c}//0) <  $f1 { $c } ; 
-    $fm2 { $c } = dualvar $f1 { $c } + 0 , $_ if ($fm2{$c}//0) <= $f1 { $c } ;
+    $fm2 { $c } = dualvar $f1 { $c } + 0 , $_ if ($fm2{$c}//0) <= $f1 { $c } && $fm1{$c} ne $_ ;
   }
 }
 
@@ -66,7 +66,8 @@ for my $c ( sort keys %f2 ) {
   print "$o{q}$c$o{q}\t" ; 
   my @out ; 
   push @out , map { $f2{$c}[$_] || $o{0} } @fsE ;
-  push @out , map {"$o{q}$_$o{q}"} $fm1{$c}, $fm2{$c} unless $optV0 ; 
+  push @out , map {"$o{q}$_$o{q}"} grep { defined $_ } $fm1{$c}, $fm2{$c} unless $optV0 ; 
+  do { splice @out , -1 , 1 ; push @out , FAINT "--"} if $out[-1] eq $out[-2] && @fsE +2 == @out; # 同じなら除去。  # トリッキー
   say join "\t" , @out ; 
 }
 
@@ -80,7 +81,7 @@ END{
   return if ($o{2}//'') eq 0 ; 
   my $linenumeral = $readLines > 1 ? 'lines' : 'line' ; 
   print STDERR BOLD FAINT ITALIC & d3 ( $readLines ) . " $linenumeral read" ; 
-  print STDERR BOLD FAINT ITALIC $o{'='} ? " starting from $o{q}$head$o{q}" : ". " ; 
+  print STDERR BOLD FAINT ITALIC $o{'='} ? " after $o{q}$head$o{q}" : ". " ; 
   my $s = tv_interval $dt_start , [ gettimeofday ] ; 
   say STDERR BOLD FAINT ITALIC " -- $Script ; " . $procsec . " sec. in process" ;
 }
@@ -122,7 +123,7 @@ sub HELP_MESSAGE {
   -0 STR : 頻度が0であることをSTRで表示。未指定なら"-" となる。-0 0 のような使い方が想定される。
   -2 0 : 入力行数や処理時間などの2次情報を、標準エラー出力に出力しない。
   -q STR : 出現した各文字を、STR で囲って表示する。未指定ならシングルクォーテーション(')。'1'のようになる。
-  -v 0 : 具体例の抑制。(出力される具体例は、その文字を最も多く持つ入力行で、最初のものと、最後のものである。)
+  -v 0 : 具体例の抑制。(出力される具体例は、その文字を最も多く持つ入力行で、最初のものと、それとは異なる最後のものである。)
   -@ N  : N秒おきに、入力の読み取り状況を標準エラー出力に出力する。
 
   --help : このオンラインヘルプの文面を表示する。

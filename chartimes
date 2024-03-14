@@ -3,7 +3,7 @@ use 5.014 ; use warnings ;
 use Time::HiRes qw [ gettimeofday tv_interval ] ;
 my ${ dt_start } = [ gettimeofday ] ; 
 use Encode qw[ decode_utf8 encode_utf8 ] ; 
-use Getopt::Std ; getopts '=@:0:2:q:v:y:' , \my %o  ; 
+use Getopt::Std ; getopts '=@:0:2:q:v:y:R' , \my %o  ; 
 use Term::ANSIColor qw[ color :constants ] ; $Term::ANSIColor::AUTORESET = 1 ;
 use FindBin qw[ $Script ] ; 
 use autodie qw [ open ] ;
@@ -47,7 +47,26 @@ while ( <> ) {
   my @F = split // , $_ , 0 ; # 文字単位でばらばらにする。0 でなくて-1にすると、配列の最後が空文字列になる。
   #say join "+" , @F ; 
   my %f1 ; #  $frq1{ $char } でその行にその文字が何回出現したかを格納。
-  $f1 { $_ } ++ for @F  ; 
+  if ( ! $o{R} ) { $f1 { $_ } ++ for @F } # 単純に集計
+  else { 
+    my %t ; # $t{$c}は $cが連続で最長何文字続いたかを格納するようにする。
+    my $z = '' ; # 直前の文字
+    my $d = 1 ; # 長さ
+    push @F , '' ; # 軽いトリック
+    for ( @F ) { 
+      if ( $_ eq $z ) {
+        $d ++ ; #print $d ; 
+      } else 
+      {
+        $t {$z} = $d ; #print $d if $d > 1 ; 
+        $d = 1 ; # リセット
+        $f1 { $z } = $t{ $z } if ( $f1 { $z } // 0 ) < $t { $z } ;
+      }
+      $z = $_ ;
+    }
+    delete $f1{''} ; 
+    #for ( keys %t )
+  }
   $f2 { $_ } [ $f1{$_} ] ++ for keys %f1 ;
   $fs { $_ } = 1 for values %f1 ; 
 
@@ -78,7 +97,7 @@ sub output () {
   }
 }
 
-END{
+END {
   exit if $help ;
   my $procsec = sprintf "%.5f", tv_interval ${ dt_start } ; #time - $time0 ; # このプログラムの処理にかかった秒数。比較する2個の時刻は秒単位なので、±1秒未満の誤差は発生する。
   $readLines //= $. ; # Ctrl+Cの連打で必要となる処理。
@@ -123,8 +142,7 @@ sub HELP_MESSAGE {
   - 小数点が2回出現したとか、括弧の対応がついていない可能性が検出容易。
   - 特別値や特殊文字も見つけやすくなる。
 
-
-オプションに関して
+オプションに関して: 
 
   -0 STR : 頻度が0であることをSTRで表示。未指定なら"-" となる。-0 0 のような使い方が想定される。
   -2 0 : 入力行数や処理時間などの2次情報を、標準エラー出力に出力しない。
@@ -133,6 +151,8 @@ sub HELP_MESSAGE {
   #-y N : 横軸の値が N 以上の場合の、文字のみ出力する。
   -@ N  : N秒おきに、入力の読み取り状況を標準エラー出力に出力する。
 
+  -R   : 異なる各文字が、それぞれの行で、最長で何文字連続したかを、数えるようにする。
+
   --help : このオンラインヘルプの文面を表示する。
 
 その他: 
@@ -140,6 +160,8 @@ sub HELP_MESSAGE {
   * -: によって、具体例のところに行番号が付加されるようにしたい。 123:"someline" のように。
   * 出力の表示順序について、times (頻度; 横軸の数) が多い順に表示するオプションが欲しい。
   * 他の表示順序のオプションも考えたい。各文字の出現頻度順など。-~で逆転させるなど。
-  * 横軸の数値が少ないものは出力しないオプション
+  * 具体例において、その文字列が何回出現したかを暗い文字で括弧内で表示させたい。
+  * 文字コードも出したいが、他のコマンドで今は代替できるので、もしかしたら後で実装する。
+  * 1文字単位なので、このコマンドは動作が少し遅く感じられるかも。
 
 =cut

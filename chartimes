@@ -18,6 +18,8 @@ my $sec = $o{'@'} // 15 ; # 何秒おきにアラームを発生させるか
 
 $o{q} //= "'" ; # 文字を囲む文字
 $o{0} //= '-' ; 
+my $optV0 = ($o{v}//'') eq '0' ? 1 : 0 ;
+
 
 $SIG{INT} = sub { exit } ;
 $SIG{ALRM} = sub { 
@@ -58,7 +60,10 @@ my @fsE = sort { $a <=> $b } keys %fs ; # E は Entire の頭文字のつもり
 say UNDERLINE join "\t" , 'char', @fsE ; 
 for my $c ( sort keys %f2 ) { 
   print "$o{q}$c$o{q}\t" ; 
-  say join "\t" , ( map { $f2{$c}[$_] || $o{0} } @fsE ) , map {"$o{q}$_$o{q}"} $fm1{$c}, $fm2{$c} ;
+  my @out ; 
+  push @out , map { $f2{$c}[$_] || $o{0} } @fsE ;
+  push @out , map {"$o{q}$_$o{q}"} $fm1{$c}, $fm2{$c} unless $optV0 ; 
+  say join "\t" , @out ; 
 }
 
 
@@ -112,7 +117,7 @@ sub HELP_MESSAGE {
   -0 STR : 頻度が0であることをSTRで表示。未指定なら"-" となる。-0 0 のような使い方が想定される。
   -2 0 : 入力行数や処理時間などの2次情報を、標準エラー出力に出力しない。
   -q STR : 出現した各文字を、STR で囲って表示する。未指定ならシングルクォーテーション(')。'1'のようになる。
-  #-v 0 : 具体例の抑制
+  -v 0 : 具体例の抑制。(出力される具体例は、その文字を最も多く持つ入力行で、最初のものと、最後のものである。)
   -@ N  : N秒おきに、入力の読み取り状況を標準エラー出力に出力する。
 
   --help : このオンラインヘルプの文面を表示する。

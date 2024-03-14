@@ -3,7 +3,7 @@ use 5.014 ; use warnings ;
 use Time::HiRes qw [ gettimeofday tv_interval ] ;
 my ${ dt_start } = [ gettimeofday ] ; 
 use Encode qw[ decode_utf8 encode_utf8 ] ; 
-use Getopt::Std ; getopts '@:0:2:q:v:' , \my %o  ; 
+use Getopt::Std ; getopts '=@:0:2:q:v:' , \my %o  ; 
 use Term::ANSIColor qw[ color :constants ] ; $Term::ANSIColor::AUTORESET = 1 ;
 use FindBin qw[ $Script ] ; 
 use autodie qw [ open ] ;
@@ -36,6 +36,10 @@ my %f2 ; # $f2{ $char } [ $times ] は、各文字 charを丁度times個持つ�
 my %fs ; # $f2{$c}[$t] の 数$t で現れた値を記録。
 my %fm1 ; # $fm1{$c} で $c の出現の最大値を記録。dualvar である。すなわち、その時の最大値の時の、行文字列も格納。
 my %fm2 ; # %fm1 とよく似ているが、最後の例を取り出す。
+
+
+my $head = <> if $o{'='} ;
+chomp $head if defined $head ;
 
 # 集計
 while ( <> ) {
@@ -75,7 +79,8 @@ END{
   $readLines //= $. ; # Ctrl+Cの連打で必要となる処理。
   return if ($o{2}//'') eq 0 ; 
   my $linenumeral = $readLines > 1 ? 'lines' : 'line' ; 
-  print STDERR BOLD FAINT ITALIC & d3 ( $readLines ) . " $linenumeral read. " ; 
+  print STDERR BOLD FAINT ITALIC & d3 ( $readLines ) . " $linenumeral read" ; 
+  print STDERR BOLD FAINT ITALIC $o{'='} ? " starting from $o{q}$head$o{q}" : ". " ; 
   my $s = tv_interval $dt_start , [ gettimeofday ] ; 
   say STDERR BOLD FAINT ITALIC " -- $Script ; " . $procsec . " sec. in process" ;
 }
@@ -123,6 +128,6 @@ sub HELP_MESSAGE {
   --help : このオンラインヘルプの文面を表示する。
 
 その他: 
-  * 具体例を表示するようにしたり、それを抑制するオプションを付けよ。
+  * 具体例2個が同じ場合は、出力は1個だけにしたい。
 
 =cut

@@ -41,6 +41,8 @@ my %fm2 ; # %fm1 とよく似ているが、最後の例を取り出す。
 my $head = <> if $o{'='} ;
 chomp $head if defined $head ;
 
+$SIG{INT} = sub { & output ; exit } ;
+
 # 集計
 while ( <> ) {
   $readLines ++ ;
@@ -59,20 +61,26 @@ while ( <> ) {
   }
 }
 
+& output () ;
+exit ; 
+
 # 出力
-my @fsE = sort { $a <=> $b } keys %fs ; # E は Entire の頭文字のつもり
-say UNDERLINE join "\t" , 'char', @fsE ; 
-for my $c ( sort keys %f2 ) { 
-  print "$o{q}$c$o{q}\t" ; 
-  my @out ; 
-  push @out , map { $f2{$c}[$_] || $o{0} } @fsE ;
-  push @out , map {"$o{q}$_$o{q}"} grep { defined $_ } $fm1{$c}, $fm2{$c} unless $optV0 ; 
-  do { splice @out , -1 , 1 ; push @out , FAINT "--"} if $out[-1] eq $out[-2] && @fsE +2 == @out; # 同じなら除去。  # トリッキー
-  say join "\t" , @out ; 
+
+sub output () { 
+  my @fsE = sort { $a <=> $b } keys %fs ; # E は Entire の頭文字のつもり
+  say UNDERLINE join "\t" , 'char', @fsE ; 
+  for my $c ( sort keys %f2 ) { 
+    print "$o{q}$c$o{q}\t" ; 
+    my @out ; 
+    push @out , map { $f2{$c}[$_] || $o{0} } @fsE ;
+    push @out , map {"$o{q}$_$o{q}"} grep { defined $_ } $fm1{$c}, $fm2{$c} unless $optV0 ; 
+    do { splice @out , -1 , 1 ; push @out , FAINT "--"} if $out[-1] eq $out[-2] && @fsE +2 == @out; # 同じなら除去。  # トリッキー
+    say join "\t" , @out ; 
+  }
 }
 
 
-exit ;
+
 
 END{
   exit if $help ;
@@ -111,9 +119,9 @@ sub HELP_MESSAGE {
   $0 < inuptfile 
   cat inputfile | $0 
 
- 各文字yが丁度x個持つ文字が、何行に出現したかを行列状に表示するコマンドである。
+ 各文字yが丁度x個持つ文字が、何個の行に出現したかを行列状に表示するコマンドである。
 
- 下記の用途などに使える。他にも幅広い用途に使えるであろう。
+ 下記の用途に使える。他にも幅広い用途に使えるであろう。
   - 小数点が2回出現したとか、括弧の対応がついていない可能性が検出容易。
   - 特別値や特殊文字も見つけやすくなる。
 
@@ -129,6 +137,7 @@ sub HELP_MESSAGE {
   --help : このオンラインヘルプの文面を表示する。
 
 その他: 
-  * 具体例2個が同じ場合は、出力は1個だけにしたい。
+  * 具体例の表示の説明は、もう少し正確で的確で簡潔な説明が必要。(内部のプログラムを見る必要あり。)
+  * -: によって、具体例のところに行番号が付加されるようにしたい。 123:"someline" のように。
 
 =cut

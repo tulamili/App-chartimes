@@ -104,7 +104,7 @@ END {
   return if ($o{2}//'') eq 0 ; 
   my $linenumeral = $readLines > 1 ? 'lines' : 'line' ; 
   print STDERR BOLD FAINT ITALIC & d3 ( $readLines ) . " $linenumeral read" ; 
-  print STDERR BOLD FAINT ITALIC $o{'='} ? " after $o{q}$head$o{q}" : ". " ; 
+  print STDERR BOLD FAINT ITALIC $o{'='} ? " after $o{q}$head$o{q}. " : ". " ; 
   my $charnumeral = $diffChars > 1 ? 'characters' : 'character' ; 
   print STDERR BOLD FAINT ITALIC & d3 ( $diffChars ) . " different $charnumeral in input are shown. " ; 
   my $s = tv_interval $dt_start , [ gettimeofday ] ; 

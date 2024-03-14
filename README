@@ -1,0 +1,17 @@
+
+This module provides a Unix-like command `chartimes'. 
+
+ 各文字yが丁度x個持つ文字が、何行に出現したかを行列状に表示するコマンド chartimes 
+ を提供するモジュールである。
+
+ 下記の用途などに使える。他にも幅広い用途に使えるであろう。
+  - 小数点が2回出現したとか、括弧の対応がついていない可能性が検出容易。
+  - 特別値や特殊文字も見つけやすくなる。
+
+
+
+=head1 DESCRIPTION
+
+ Copyright (c) 2024 Toshiyuki SHIMONO. All rights reserved.
+ This program is free software; you can redistribute it and/or
+ modify it under the same terms as Perl itself.

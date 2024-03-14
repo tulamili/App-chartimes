@@ -14,6 +14,7 @@ use Scalar::Util qw [ dualvar ]  ;
 my $time0 = time ; 
 my $help = 0  ; # オンラインヘルプの文面の表示をしたか否か。
 my $readLines = 0 ; # 読み取った行数
+my $outLines = 0 ; # 出力の行数
 my $sec = $o{'@'} // 15 ; # 何秒おきにアラームを発生させるか
 
 $o{q} //= "'" ; # 文字を囲む文字
@@ -68,6 +69,7 @@ exit ;
 
 sub output () { 
   my @fsE = sort { $a <=> $b } keys %fs ; # E は Entire の頭文字のつもり
+  $outLines = keys %f2  ; 
   say UNDERLINE join "\t" , 'char', @fsE ; 
   for my $c ( sort keys %f2 ) { 
     print "$o{q}$c$o{q}\t" ; 
@@ -90,6 +92,8 @@ END{
   my $linenumeral = $readLines > 1 ? 'lines' : 'line' ; 
   print STDERR BOLD FAINT ITALIC & d3 ( $readLines ) . " $linenumeral read" ; 
   print STDERR BOLD FAINT ITALIC $o{'='} ? " after $o{q}$head$o{q}" : ". " ; 
+  my $charnumeral = $outLines > 1 ? 'characters' : 'character' ; 
+  print STDERR BOLD FAINT ITALIC & d3 ( $outLines ) . " different $charnumeral in input. " ; 
   my $s = tv_interval $dt_start , [ gettimeofday ] ; 
   say STDERR BOLD FAINT ITALIC " -- $Script ; " . $procsec . " sec. in process" ;
 }
@@ -132,6 +136,7 @@ sub HELP_MESSAGE {
   -2 0 : 入力行数や処理時間などの2次情報を、標準エラー出力に出力しない。
   -q STR : 出現した各文字を、STR で囲って表示する。未指定ならシングルクォーテーション(')。'1'のようになる。
   -v 0 : 具体例の抑制。(出力される具体例は、その文字を最も多く持つ入力行で、最初のものと、それとは異なる最後のものである。)
+  #-y N : 横軸の値が N 以上の場合の、文字のみ出力する。
   -@ N  : N秒おきに、入力の読み取り状況を標準エラー出力に出力する。
 
   --help : このオンラインヘルプの文面を表示する。
@@ -139,5 +144,8 @@ sub HELP_MESSAGE {
 その他: 
   * 具体例の表示の説明は、もう少し正確で的確で簡潔な説明が必要。(内部のプログラムを見る必要あり。)
   * -: によって、具体例のところに行番号が付加されるようにしたい。 123:"someline" のように。
+  * 出力の表示順序について、times (頻度; 横軸の数) が多い順に表示するオプションが欲しい。
+  * 他の表示順序のオプションも考えたい。各文字の出現頻度順など。-~で逆転させるなど。
+  * 横軸の数値が少ないものは出力しないオプション
 
 =cut

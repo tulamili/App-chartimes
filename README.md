@@ -22,9 +22,9 @@ This module provides a Unix-like command `chartimes'.
     オプション(-R)も提供している。このことで、キーボード連打等もしくは通信の
     不具合によるデータの異常を検出しやすくしている。
 
-実行例を以下に示す。コマンドラインで3回実行している:
+実行例を以下に示す(データはTRC新刊図書オープンデータを用いた)。コマンドラインで3回実行している:
 
-(1) ISBN番号で、0,1,5の3文字がそれぞれ4個連続して出現する入力行が見つかった。
+(1) ISBN番号で、0,1,5の3文字がそれぞれ4個**連続**して出現する入力行が見つかった。(-Rのオプションで連続する最大長を算出している。)
 
 (2) 半角空白,「ル」,「ー」(カタカナの長母音)のそれぞれが最大3個も出現する入力行が見つかった。
 
@@ -33,7 +33,7 @@ This module provides a Unix-like command `chartimes'.
 <img width="933" alt="image" src="https://github.com/tulamili/App-chartimes/assets/6661651/9cfd209c-4366-4a80-9eb3-3bbe16305738">
 
 
-=head1 DESCRIPTION
+
 
  Copyright (c) 2024 Toshiyuki SHIMONO. All rights reserved.
  This program is free software; you can redistribute it and/or

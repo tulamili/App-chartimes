@@ -36,60 +36,60 @@ my %fs ; # $f2{$c}[$t] の 数$t で現れた値を記録。
 my %fm1 ; # $fm1{$c} で $c の出現の最大値を記録。dualvar である。すなわち、その時の最大値の時の、行文字列も格納。
 my %fm2 ; # %fm1 とよく似ているが、最後の例を取り出す。 dualvar であることは同じ。
 my ( %fm1c , %fm2c ) ; # その対応する文字列の出現回数を格納する。
-
 my $head = <> if $o{'='} ;
 chomp $head if defined $head ;
 $SIG{INT} = sub { & output ; exit } ;
-
-# 集計
-while ( <> ) {
-  $readLines ++ ;
-  chomp ; 
-  $_ = decode_utf8 $_ ;
-  my @F = split // , $_ , 0 ; # 文字単位でばらばらにする。0 でなくて-1にすると、配列の最後が空文字列になる。
-  #say join "+" , @F ; 
-  my %f1 ; #  $f1{ $char } でその行にその文字が何回出現したかを格納。
-  if ( ! $o{r} ) { $f1 { $_ } ++ for @F } # 単純に集計
-  else { 
-    my %t ; # $t{$c}は $cが連続で最長何文字続いたかを格納するようにする。
-    my $z = '' ; # 直前の文字
-    my $d = 1 ; # 長さ
-    push @F , '' ; # 軽いトリック
-    for ( @F ) { 
-      if ( $_ eq $z ) {
-        $d ++ ; #print $d ; 
-      } else 
-      {
-        $t {$z} = $d ; #print $d if $d > 1 ; 
-        $d = 1 ; # リセット
-        $f1 { $z } = $t{ $z } if ( $f1 { $z } // 0 ) < $t { $z } ;
-      }
-      $z = $_ ;
-    }
-    delete $f1{''} ;  # <-- なぜゆえ必要なのか?
-    #for ( keys %t )
-  }
-  $f2 { $_ } [ $f1{$_} ] ++ for keys %f1 ;
-  $fs { $_ } = 1 for values %f1 ; 
-
-  for my $c ( keys %f1 ) { 
-    #my $p = $_  ; # parts の p のつもり
-    my $x1 = do { my $x11 = index $_, $c ; my $x1t = rindex substr($_,0,$x11),"\t" ; $x1t + 1  } ;
-    my $x2 = do { my $x22 = rindex $_, $c ; my $x2t = index substr($_,$x22+1),"\t" ; $x2t == -1 ? length $_ : $x2t+1+$x22   } ; 
-    my $p = substr $_ , $x1 , $x1 - $x2  ;# $x2 - $x1 ; # parts の p のつもり
-    #$p =~ s/.*\t($c)/$c/ ; $p =~ s/\t.*// ;  
-    do{ $fm1c{$c} = 0 ; $fm1{$c} = dualvar $f1{$c},$p } if ($fm1{$c}//0) <  $f1 { $c } ; 
-    $fm1c { $c } ++ if $p eq $fm1{$c} ; # dualvar の文字列の方の比較になっている
-    do{ $fm2c{$c} = 0 if defined $fm2{$c} && $fm2{$c} ne $p ; $fm2{$c} = dualvar $f1{$c},$p } if ($fm2{$c}//0) <= $f1 { $c } && $fm1{$c} ne $p ;
-    $fm2c { $c } ++ if defined $fm2{$c} && $p eq $fm2{$c} ; # dualvar の文字列の方の比較になっている    
-  }
-}
-
+& totalling () ; 
 & output () ;
 exit ; 
 
-# 出力
+# 集計
+sub totalling () {
+  while ( <> ) {
+    $readLines ++ ;
+    chomp ; 
+    $_ = decode_utf8 $_ ;
+    my @F = split // , $_ , 0 ; # 文字単位でばらばらにする。0 でなくて-1にすると、配列の最後が空文字列になる。
+    #say join "+" , @F ; 
+    my %f1 ; #  $f1{ $char } でその行にその文字が何回出現したかを格納。
+    if ( ! $o{r} ) { $f1 { $_ } ++ for @F } # 単純に集計
+    else { 
+      my %t ; # $t{$c}は $cが連続で最長何文字続いたかを格納するようにする。
+      my $z = '' ; # 直前の文字
+      my $d = 1 ; # 長さ
+      push @F , '' ; # 軽いトリック
+      for ( @F ) { 
+        if ( $_ eq $z ) {
+          $d ++ ; #print $d ; 
+        } else 
+        {
+          $t {$z} = $d ; #print $d if $d > 1 ; 
+          $d = 1 ; # リセット
+          $f1 { $z } = $t{ $z } if ( $f1 { $z } // 0 ) < $t { $z } ;
+        }
+        $z = $_ ;
+      }
+      delete $f1{''} ;  # <-- なぜゆえ必要なのか?
+      #for ( keys %t )
+    }
+    $f2 { $_ } [ $f1{$_} ] ++ for keys %f1 ;
+    $fs { $_ } = 1 for values %f1 ; 
 
+    for my $c ( keys %f1 ) { 
+      #my $p = $_  ; # parts の p のつもり
+      my $x1 = do { my $x11 = index $_, $c ; my $x1t = rindex substr($_,0,$x11),"\t" ; $x1t + 1  } ;
+      my $x2 = do { my $x22 = rindex $_, $c ; my $x2t = index substr($_,$x22+1),"\t" ; $x2t == -1 ? length $_ : $x2t+1+$x22   } ; 
+      my $p = substr $_ , $x1 , $x1 - $x2  ;# $x2 - $x1 ; # parts の p のつもり
+      #$p =~ s/.*\t($c)/$c/ ; $p =~ s/\t.*// ;  
+      do{ $fm1c{$c} = 0 ; $fm1{$c} = dualvar $f1{$c},$p } if ($fm1{$c}//0) <  $f1 { $c } ; 
+      $fm1c { $c } ++ if $p eq $fm1{$c} ; # dualvar の文字列の方の比較になっている
+      do{ $fm2c{$c} = 0 if defined $fm2{$c} && $fm2{$c} ne $p ; $fm2{$c} = dualvar $f1{$c},$p } if ($fm2{$c}//0) <= $f1 { $c } && $fm1{$c} ne $p ;
+      $fm2c { $c } ++ if defined $fm2{$c} && $p eq $fm2{$c} ; # dualvar の文字列の方の比較になっている    
+    }
+  }
+}
+
+# 出力
 sub output () { 
   #say STDERR $o{y} ; exit ;
   my @fsE = sort { $a <=> $b } keys %fs ; # E は Entire の頭文字のつもり。数値の集合となる。

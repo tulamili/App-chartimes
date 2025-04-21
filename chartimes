@@ -3,7 +3,7 @@ use 5.014 ; use warnings ;
 use Time::HiRes qw [ gettimeofday tv_interval ] ;
 my ${ dt_start } = [ gettimeofday ] ; 
 use Encode qw[ decode_utf8 encode_utf8 ] ; 
-use Getopt::Std ; getopts '=@:0:2:q:v:y:R' , \my %o  ; 
+use Getopt::Std ; getopts '=@:0:2:q:v:y:r' , \my %o  ; 
 use Term::ANSIColor qw[ color :constants ] ; $Term::ANSIColor::AUTORESET = 1 ;
 use FindBin qw[ $Script ] ; 
 use autodie qw [ open ] ;
@@ -55,7 +55,7 @@ sub totalling () {
     my @F = split // , $_ , 0 ; # 文字単位でばらばらにする。0 でなくて-1にすると、配列の最後が空文字列になる。
     #say join "+" , @F ; 
     my %f1 ; #  $f1{ $char } でその行にその文字が何回出現したかを格納。
-    if ( ! $o{R} ) { $f1 { $_ } ++ for @F } # 単純に集計
+    if ( ! $o{r} ) { $f1 { $_ } ++ for @F } # 単純に集計
     else { 
       my %t ; # $t{$c}は $cが連続で最長何文字続いたかを格納するようにする。
       my $z = '' ; # 直前の文字
@@ -160,7 +160,7 @@ sub HELP_MESSAGE {
   #-y N : 横軸の値が N 以上の場合の、文字のみ出力する。
   -@ N  : N秒おきに、入力の読み取り状況を標準エラー出力に出力する。
 
-  -R   : 異なる各文字が、それぞれの行で、最長で何文字連続したかを、数えるようにする。
+  -r   : 異なる各文字が、それぞれの行で、最長で何文字連続したかを、数えるようにする。
 
   --help : このオンラインヘルプの文面を表示する。
 

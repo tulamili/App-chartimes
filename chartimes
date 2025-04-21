@@ -41,50 +41,52 @@ my $head = <> if $o{'='} ;
 chomp $head if defined $head ;
 $SIG{INT} = sub { & output ; exit } ;
 
-# 集計
-while ( <> ) {
-  $readLines ++ ;
-  chomp ; 
-  $_ = decode_utf8 $_ ;
-  my @F = split // , $_ , 0 ; # 文字単位でばらばらにする。0 でなくて-1にすると、配列の最後が空文字列になる。
-  #say join "+" , @F ; 
-  my %f1 ; #  $f1{ $char } でその行にその文字が何回出現したかを格納。
-  if ( ! $o{R} ) { $f1 { $_ } ++ for @F } # 単純に集計
-  else { 
-    my %t ; # $t{$c}は $cが連続で最長何文字続いたかを格納するようにする。
-    my $z = '' ; # 直前の文字
-    my $d = 1 ; # 長さ
-    push @F , '' ; # 軽いトリック
-    for ( @F ) { 
-      if ( $_ eq $z ) {
-        $d ++ ; #print $d ; 
-      } else 
-      {
-        $t {$z} = $d ; #print $d if $d > 1 ; 
-        $d = 1 ; # リセット
-        $f1 { $z } = $t{ $z } if ( $f1 { $z } // 0 ) < $t { $z } ;
-      }
-      $z = $_ ;
-    }
-    delete $f1{''} ; 
-    #for ( keys %t )
-  }
-  $f2 { $_ } [ $f1{$_} ] ++ for keys %f1 ;
-  $fs { $_ } = 1 for values %f1 ; 
 
-  for my $c ( keys %f1 ) { 
-    do{ $fm1c{$c} = 0 ; $fm1{$c} = dualvar $f1{$c},$_ } if ($fm1{$c}//0) <  $f1 { $c } ; 
-    $fm1c { $c } ++ if $_ eq $fm1{$c} ; # dualvar の文字列の方の比較になっている
-    do{ $fm2c{$c} = 0 if defined $fm2{$c} && $fm2{$c} ne $_ ; $fm2{$c} = dualvar $f1{$c},$_ } if ($fm2{$c}//0) <= $f1 { $c } && $fm1{$c} ne $_ ;
-    $fm2c { $c } ++ if defined $fm2{$c} && $_ eq $fm2{$c} ; # dualvar の文字列の方の比較になっている    
-  }
-}
-
+& totalling () ; 
 & output () ;
 exit ; 
 
-# 出力
+# 集計
+sub totalling () { 
+  while ( <> ) {
+    $readLines ++ ;
+    chomp ; 
+    $_ = decode_utf8 $_ ;
+    my @F = split // , $_ , 0 ; # 文字単位でばらばらにする。0 でなくて-1にすると、配列の最後が空文字列になる。
+    #say join "+" , @F ; 
+    my %f1 ; #  $f1{ $char } でその行にその文字が何回出現したかを格納。
+    if ( ! $o{R} ) { $f1 { $_ } ++ for @F } # 単純に集計
+    else { 
+      my %t ; # $t{$c}は $cが連続で最長何文字続いたかを格納するようにする。
+      my $z = '' ; # 直前の文字
+      my $d = 1 ; # 長さ
+      push @F , '' ; # 軽いトリック
+      for ( @F ) { 
+        if ( $_ eq $z ) {
+          $d ++ ; #print $d ; 
+        } else 
+        {
+          $t {$z} = $d ; #print $d if $d > 1 ; 
+          $d = 1 ; # リセット
+          $f1 { $z } = $t{ $z } if ( $f1 { $z } // 0 ) < $t { $z } ;
+        }
+        $z = $_ ;
+      }
+      delete $f1{''} ; 
+    }
+    $f2 { $_ } [ $f1{$_} ] ++ for keys %f1 ;
+    $fs { $_ } = 1 for values %f1 ; 
 
+    for my $c ( keys %f1 ) { 
+      do{ $fm1c{$c} = 0 ; $fm1{$c} = dualvar $f1{$c},$_ } if ($fm1{$c}//0) <  $f1 { $c } ; 
+      $fm1c { $c } ++ if $_ eq $fm1{$c} ; # dualvar の文字列の方の比較になっている
+      do{ $fm2c{$c} = 0 if defined $fm2{$c} && $fm2{$c} ne $_ ; $fm2{$c} = dualvar $f1{$c},$_ } if ($fm2{$c}//0) <= $f1 { $c } && $fm1{$c} ne $_ ;
+      $fm2c { $c } ++ if defined $fm2{$c} && $_ eq $fm2{$c} ; # dualvar の文字列の方の比較になっている    
+    }
+  }
+}
+
+# 出力
 sub output () { 
   #say STDERR $o{y} ; exit ;
   my @fsE = sort { $a <=> $b } keys %fs ; # E は Entire の頭文字のつもり。数値の集合となる。

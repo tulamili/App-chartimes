@@ -3,7 +3,7 @@ use 5.014 ; use warnings ;
 use Time::HiRes qw [ gettimeofday tv_interval ] ;
 my ${ dt_start } = [ gettimeofday ] ; 
 use Encode qw[ decode_utf8 encode_utf8 ] ; 
-use Getopt::Std ; getopts '=@:0:2:q:v:y:R' , \my %o  ; 
+use Getopt::Std ; getopts '=@:0:2:q:v:y:r' , \my %o  ; 
 use Term::ANSIColor qw[ color :constants ] ; $Term::ANSIColor::AUTORESET = 1 ;
 use FindBin qw[ $Script ] ; 
 use autodie qw [ open ] ;
@@ -49,7 +49,7 @@ while ( <> ) {
   my @F = split // , $_ , 0 ; # 文字単位でばらばらにする。0 でなくて-1にすると、配列の最後が空文字列になる。
   #say join "+" , @F ; 
   my %f1 ; #  $f1{ $char } でその行にその文字が何回出現したかを格納。
-  if ( ! $o{R} ) { $f1 { $_ } ++ for @F } # 単純に集計
+  if ( ! $o{r} ) { $f1 { $_ } ++ for @F } # 単純に集計
   else { 
     my %t ; # $t{$c}は $cが連続で最長何文字続いたかを格納するようにする。
     my $z = '' ; # 直前の文字
@@ -66,17 +66,22 @@ while ( <> ) {
       }
       $z = $_ ;
     }
-    delete $f1{''} ; 
+    delete $f1{''} ;  # <-- なぜゆえ必要なのか?
     #for ( keys %t )
   }
   $f2 { $_ } [ $f1{$_} ] ++ for keys %f1 ;
   $fs { $_ } = 1 for values %f1 ; 
 
   for my $c ( keys %f1 ) { 
-    do{ $fm1c{$c} = 0 ; $fm1{$c} = dualvar $f1{$c},$_ } if ($fm1{$c}//0) <  $f1 { $c } ; 
-    $fm1c { $c } ++ if $_ eq $fm1{$c} ; # dualvar の文字列の方の比較になっている
-    do{ $fm2c{$c} = 0 if defined $fm2{$c} && $fm2{$c} ne $_ ; $fm2{$c} = dualvar $f1{$c},$_ } if ($fm2{$c}//0) <= $f1 { $c } && $fm1{$c} ne $_ ;
-    $fm2c { $c } ++ if defined $fm2{$c} && $_ eq $fm2{$c} ; # dualvar の文字列の方の比較になっている    
+    #my $p = $_  ; # parts の p のつもり
+    my $x1 = do { my $x11 = index $_, $c ; my $x1t = rindex substr($_,0,$x11),"\t" ; $x1t + 1  } ;
+    my $x2 = do { my $x22 = rindex $_, $c ; my $x2t = index substr($_,$x22+1),"\t" ; $x2t == -1 ? length $_ : $x2t+1+$x22   } ; 
+    my $p = substr $_ , $x1 , $x1 - $x2  ;# $x2 - $x1 ; # parts の p のつもり
+    #$p =~ s/.*\t($c)/$c/ ; $p =~ s/\t.*// ;  
+    do{ $fm1c{$c} = 0 ; $fm1{$c} = dualvar $f1{$c},$p } if ($fm1{$c}//0) <  $f1 { $c } ; 
+    $fm1c { $c } ++ if $p eq $fm1{$c} ; # dualvar の文字列の方の比較になっている
+    do{ $fm2c{$c} = 0 if defined $fm2{$c} && $fm2{$c} ne $p ; $fm2{$c} = dualvar $f1{$c},$p } if ($fm2{$c}//0) <= $f1 { $c } && $fm1{$c} ne $p ;
+    $fm2c { $c } ++ if defined $fm2{$c} && $p eq $fm2{$c} ; # dualvar の文字列の方の比較になっている    
   }
 }
 
@@ -92,7 +97,7 @@ sub output () {
   $diffChars = @chars  ; 
   say UNDERLINE join "\t" , 'char', @fsE , $optV0 ? () : 'examples' . FAINT '(count)' ; 
   for my $c ( @chars ) { 
-    print "$o{q}$c$o{q}\t" ; 
+    print $c ne "\t" ? "$o{q}$c$o{q}\t" : "$o{q}\\t$o{q}\t" ; 
     my @out ; 
     push @out , map { $f2{$c}[$_] || $o{0} } @fsE ;
     my $fm1c = "$o{q}$fm1{$c}$o{q}" . FAINT "($fm1c{$c})" if defined $fm1{$c} ; # 
@@ -158,7 +163,7 @@ sub HELP_MESSAGE {
   #-y N : 横軸の値が N 以上の場合の、文字のみ出力する。
   -@ N  : N秒おきに、入力の読み取り状況を標準エラー出力に出力する。
 
-  -R   : 異なる各文字が、それぞれの行で、最長で何文字連続したかを、数えるようにする。
+  -r   : 異なる各文字が、それぞれの行で、最長で何文字連続したかを、数えるようにする。
 
   --help : このオンラインヘルプの文面を表示する。
 

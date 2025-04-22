@@ -3,7 +3,7 @@ use 5.014 ; use warnings ;
 use Time::HiRes qw [ gettimeofday tv_interval ] ;
 my ${ dt_start } = [ gettimeofday ] ; 
 use Encode qw[ decode_utf8 encode_utf8 ] ; 
-use Getopt::Std ; getopts '=@:0:2:q:v:y:r' , \my %o  ; 
+use Getopt::Std ; getopts '=@:0:2:q:v:y:rL' , \my %o  ; 
 use Term::ANSIColor qw[ color :constants ] ; $Term::ANSIColor::AUTORESET = 1 ;
 use FindBin qw[ $Script ] ; 
 use autodie qw [ open ] ;
@@ -30,18 +30,30 @@ $SIG{ALRM} = sub {
 } ; 
 alarm $sec ;
 
+if ( $o{L} ) { 
+  my %frq ; # $frq{$c}[$.] で頻度を集計
+  while ( <> ) { 
+    $readLines ++ ;
+    chomp ; 
+    $frq{$_}[$.] ++ for split // , decode_utf8 $_  , 0  ; 
+  }
+  my @chars = sort keys %frq ;
+  say join "\t", map { $_= '\t' if $_ eq "\t" ; "$o{q}$_$o{q}"} @chars ; 
+  for my $l ( 0 .. $. -1 ) { say join "\t" , ( map { $frq{$_}[$l] // $o{0} } @chars ) , ":$l" } ; 
+  say join "\t", map { $_= '\t' if $_ eq "\t" ; "$o{q}$_$o{q}"} @chars ;
+  exit ; 
+}
+
+
 binmode STDOUT, ":utf8" ;
 my %f2 ; # $f2{ $char } [ $times ] は、各文字 charを丁度times個持つ文字が、何行に出現したかを格納。
 my %fs ; # $f2{$c}[$t] の 数$t で現れた値を記録。
 my %fm1 ; # $fm1{$c} で $c の出現の最大値を記録。dualvar である。すなわち、その時の最大値の時の、行文字列も格納。
 my %fm2 ; # %fm1 とよく似ているが、最後の例を取り出す。 dualvar であることは同じ。
 my ( %fm1c , %fm2c ) ; # その対応する文字列の出現回数を格納する。
-
 my $head = <> if $o{'='} ;
 chomp $head if defined $head ;
 $SIG{INT} = sub { & output ; exit } ;
-
-
 & totalling () ; 
 & output () ;
 exit ; 

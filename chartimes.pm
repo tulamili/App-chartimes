@@ -1,6 +1,6 @@
 package App::chartimes ;  
-our $VERSION = '0.032' ; 
-our $DATE = '2024-03-16T13:09+09:00' ; 
+our $VERSION = '0.033' ; 
+our $DATE = '2025-04-22T09:25+09:00' ; 
 
 =encoding utf8
 

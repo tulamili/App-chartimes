@@ -24,6 +24,6 @@ This module provides a Unix-like command `chartimes'.
 
 =head1 DESCRIPTION
 
- Copyright (c) 2024 Toshiyuki SHIMONO. All rights reserved.
+ Copyright (c) 2024-2025 Toshiyuki SHIMONO. All rights reserved.
  This program is free software; you can redistribute it and/or
  modify it under the same terms as Perl itself.

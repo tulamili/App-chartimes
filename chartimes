@@ -30,13 +30,20 @@ $SIG{ALRM} = sub {
 } ; 
 alarm $sec ;
 
-if ( $o{L} ) { my %frq ; # $frq{$c}[$.] で頻度を集計 while ( <> ) { $readLines ++ ;
-chomp ; $frq{$_}[$.] ++ for split // , decode_utf8 $_  , 0  ; } my @chars =
-sort keys %frq ; say join "\t", map { $_= '\t' if $_ eq "\t" ; "$o{q}$_$o
-{q}"} @chars ; for my $l ( 0 .. $. -1 ) { say join "\t" , ( map { $frq{$_}
-[$l] // $o{0} } @chars ) , ":$l" } ; say join "\t", map { $_= '\t' if $_
-eq "\t" ; "$o{q}$_$o{q}"} @chars ; exit ; }
-
+if ( $o{L} ) { 
+  my %frq ; # $frq{$c}[$.] で頻度を集計 
+  while ( <> ) { 
+    $readLines ++ ;
+    chomp ; 
+    $frq{$_}[$.] ++ for split // , decode_utf8 $_  , 0  ;
+  }  
+  my @chars = sort keys %frq ; 
+  binmode STDOUT, ":utf8" ;
+  say join "\t", map { $_= '\t' if $_ eq "\t" ; "$o{q}$_$o{q}"} @chars ; 
+  for my $l ( 1 .. $.  ) { say join "\t" , ( map { $frq{$_}[$l] // $o{0} } @chars ) , ":$l" } ; 
+  say join "\t", map { $_= '\t' if $_ eq "\t" ; "$o{q}$_$o{q}"} @chars ; 
+  exit ; 
+}
 
 binmode STDOUT, ":utf8" ;
 my %f2 ; # $f2{ $char } [ $times ] は、各文字 charを丁度times個持つ文字が、何行に出現したかを格納。
@@ -165,7 +172,7 @@ sub HELP_MESSAGE {
   -v 0 : 具体例の抑制。(出力される具体例は、その文字を最も多く持つ入力行で、最初のものと、それとは異なる最後のものである。)
   -y N : 横軸の値が N 以上の場合の、文字のみ出力する。(experimental)
 
-  -L    : 各行にどんな文字が出現したかを、表にまとめる。-Lなしの場合に比べて、縦横が反転していることに注意。
+  -L    : 各行にどんな文字が出現したかを、表にまとめる。-Lなしの場合に比べて、縦横が反転していることに注意。 seq 12 | $0 -L
 
   -@ N  : N秒おきに、入力の読み取り状況を標準エラー出力に出力する。
   --help : このオンラインヘルプの文面を表示する。
